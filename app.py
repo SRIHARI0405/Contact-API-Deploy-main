@@ -69,10 +69,7 @@ def extract_phone_number(bio):
     )
 
     valid_phone_numbers = list(set(all_valid_phone_numbers))
-    
-    print(valid_phone_numbers, "valid_phone_numbers")
     verified_phone_numbers = [number for number in valid_phone_numbers if is_valid_phone_number(number)]
-    print("verified_phone_numbers",verified_phone_numbers)
     return verified_phone_numbers
 
 
