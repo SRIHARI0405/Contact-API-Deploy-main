@@ -19,29 +19,6 @@ try:
 except Exception as e:
     print(f"Instagram login failed: {e}")
 
-# def calculate_engagement_rate(username, last_n_posts=10):
-#   user_id = cl.user_id_from_username(username)
-#   posts = cl.user_medias(user_id)
-#   total_likes = 0
-#   total_comments = 0
-#   post_count = min(last_n_posts, len(posts))
-#   for post in posts[:post_count]:
-#     total_likes += post['like_count']
-#     total_comments += post['comment_count']
-    
-#     total_interactions = total_likes + total_comments
-#     user_info = cl.user_info_by_username(username)
-#     followers_count = user_info['user']['follower_count']
-
-#     if followers_count == 0 or post_count == 0:
-#       engagement_rate = None
-#     else:
-#       engagement_rate = (total_interactions / post_count) / followers_count * 100
-#       time.sleep(1)  
-#       return engagement_rate
-
-
-
 
 def extract_user_data(user: User):
     return {
@@ -56,26 +33,47 @@ def extract_user_data(user: User):
 
 
 def is_valid_phone_number(number):
-    return 10 <= len(number) <= 18
+    cleaned_number = number.replace(" ", "")
+    
+    if cleaned_number.startswith('91'):
+        return len(cleaned_number) == 12  
+    elif cleaned_number.startswith('+91'):
+        return len(cleaned_number) == 13  
+    else:
+        return len(cleaned_number) == 10
 
 
 def extract_phone_number(bio):
+    phone_pattern_additional = re.compile(r'\b\d+\s?\d+\s?\d+\b')
+    phone_numbers_additional = re.findall(phone_pattern_additional, bio)
+
     phone_pattern_with_spaces = re.compile(r'\b\d+\s?\d+\b')
     phone_numbers_with_spaces = re.findall(phone_pattern_with_spaces, bio)
     
     phone_pattern_without_spaces = re.compile(r'\b\d+\b')
     phone_numbers_without_spaces = re.findall(phone_pattern_without_spaces, bio)
 
-    phone_pattern = re.compile(r'\b\d{3,4}[-.\s]?\d{6,8}\b')
+    phone_pattern = re.compile(r'\b(?:\+91)?\d{10}\b|\b\+91\d{12}\b')
     phone_numbers_spa = re.findall(phone_pattern, bio)
+    
+    valid_phone_numbers_additional = [number for number in phone_numbers_additional if is_valid_phone_number(number)]
+    valid_phone_numbers_with_spaces = [number for number in phone_numbers_with_spaces if is_valid_phone_number(number)]
+    valid_phone_numbers_without_spaces = [number for number in phone_numbers_without_spaces if is_valid_phone_number(number)]
+    valid_phone_numbers_spa = [number for number in phone_numbers_spa if is_valid_phone_number(number)]
+    
+    all_valid_phone_numbers = (
+        valid_phone_numbers_additional +
+        valid_phone_numbers_with_spaces +
+        valid_phone_numbers_without_spaces +
+        valid_phone_numbers_spa
+    )
 
-    phone_pattern_additional = re.compile(r'\b\d+\s?\d+\s?\d+\b')
-    phone_numbers_additional = re.findall(phone_pattern_additional, bio)
-
-    all_phone_numbers = list(set(phone_numbers_with_spaces + phone_numbers_without_spaces + phone_numbers_additional + phone_numbers_spa ))
-    valid_phone_numbers = [number for number in all_phone_numbers if is_valid_phone_number(number)]
-
-    return valid_phone_numbers
+    valid_phone_numbers = list(set(all_valid_phone_numbers))
+    
+    print(valid_phone_numbers, "valid_phone_numbers")
+    verified_phone_numbers = [number for number in valid_phone_numbers if is_valid_phone_number(number)]
+    print("verified_phone_numbers",verified_phone_numbers)
+    return verified_phone_numbers
 
 
 def extract_email(bio):
