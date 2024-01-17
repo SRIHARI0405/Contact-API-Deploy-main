@@ -30,18 +30,10 @@ def extract_user_data(user: User):
         'biography': user.biography,
     }
 
-
-
 def is_valid_phone_number(number):
     cleaned_number = number.replace(" ", "")
-    
-    if cleaned_number.startswith('91'):
-        return len(cleaned_number) == 12  
-    elif cleaned_number.startswith('+91'):
-        return len(cleaned_number) == 13  
-    else:
-        return len(cleaned_number) == 10
-
+    pattern = re.compile(r'^(\+91)?[0-9]{10}$')
+    return bool(pattern.match(cleaned_number))
 
 def extract_phone_number(bio):
     phone_pattern_additional = re.compile(r'\b\d+\s?\d+\s?\d+\b')
@@ -54,20 +46,14 @@ def extract_phone_number(bio):
     phone_numbers_without_spaces = re.findall(phone_pattern_without_spaces, bio)
 
     phone_pattern = re.compile(r'\b(?:\+91)?\d{10}\b|\b\+91\d{12}\b')
-    phone_numbers_spa = re.findall(phone_pattern, bio)
-    
-    valid_phone_numbers_additional = [number for number in phone_numbers_additional if is_valid_phone_number(number)]
-    valid_phone_numbers_with_spaces = [number for number in phone_numbers_with_spaces if is_valid_phone_number(number)]
-    valid_phone_numbers_without_spaces = [number for number in phone_numbers_without_spaces if is_valid_phone_number(number)]
-    valid_phone_numbers_spa = [number for number in phone_numbers_spa if is_valid_phone_number(number)]
+    phone_numbers_spa = re.findall(phone_pattern, bio)  
     
     all_valid_phone_numbers = (
-        valid_phone_numbers_additional +
-        valid_phone_numbers_with_spaces +
-        valid_phone_numbers_without_spaces +
-        valid_phone_numbers_spa
+        phone_numbers_additional +
+        phone_numbers_with_spaces +
+        phone_numbers_without_spaces +
+        phone_numbers_spa
     )
-
     valid_phone_numbers = list(set(all_valid_phone_numbers))
     verified_phone_numbers = [number for number in valid_phone_numbers if is_valid_phone_number(number)]
     return verified_phone_numbers
@@ -129,13 +115,13 @@ def get_profile(accountname):
                     'data': None
                 }
                 return jsonify(response)
-
     response = {
         'success': False,
         'message': 'Max retries reached. Unable to fetch profile.',
         'data': None
     }
     return jsonify(response)
+
 if __name__ == '__main__':
     try:
         app.run(debug=False)
