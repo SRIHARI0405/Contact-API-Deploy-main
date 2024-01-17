@@ -97,7 +97,6 @@ def get_profile(accountname):
                 combined_emails = list(set(filter(None, [profile_info.public_email] + email)))
                 data['email'] = combined_emails if combined_emails else None
 
-
                 response = {
                     'success': True,
                     'message': 'Data retrieved successfully',
@@ -108,18 +107,25 @@ def get_profile(accountname):
             else:
                 response = {
                     'success': False,
-                    'message': 'Profile not found',
+                    'message': 'User not found',
                     'data': None
                 }
                 return jsonify(response)
         except Exception as e:
-            if "429" in str(e):
+            if "404 Client Error: Not Found" in str(e):
+                response = {
+                    'success': False,
+                    'message': 'User not found',
+                    'data': None
+                }
+                return jsonify(response)
+            elif "429" in str(e):
                 print(f"Rate limit exceeded. Retrying in {retry_delay} seconds (Retry {retry_number}/{max_retries}).")
                 time.sleep(retry_delay)
             else:
                 response = {
                     'success': False,
-                    'message': f"An error occurred while fetching profile: {e}",
+                    'message': f"{e}",
                     'data': None
                 }
                 return jsonify(response)
@@ -130,7 +136,6 @@ def get_profile(accountname):
         'data': None
     }
     return jsonify(response)
-
 if __name__ == '__main__':
     try:
         app.run(debug=False)
